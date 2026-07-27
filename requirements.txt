@@ -1,0 +1,6 @@
+opencv-contrib-python
+scikit-learn
+matplotlib
+pandas
+tqdm
+joblib
