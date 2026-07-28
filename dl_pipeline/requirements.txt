@@ -1,0 +1,15 @@
+﻿# COMP9517 DL pipeline — install into the project venv
+# Create: python -m venv .venv
+# Activate (PowerShell): .\.venv\Scripts\Activate.ps1
+#
+# 1) PyTorch with CUDA 12.6 (required for RTX 2050):
+#    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+#
+# 2) Rest of stack:
+ipykernel>=6.0
+scikit-learn>=1.4
+matplotlib>=3.8
+seaborn>=0.13
+pandas>=2.0
+tqdm>=4.66
+Pillow>=10.0
