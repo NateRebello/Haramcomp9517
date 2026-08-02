@@ -1,3 +1,13 @@
+"""Train and evaluate traditional machine-learning classifiers.
+
+This is Brandon's classifier.py (from his feature branch) with one addition:
+a `decision_scores()` method + `classes_` property so top-5 accuracy (required
+by the spec) can be computed. SVC is deliberately left with probability=False
+-- decision_function() gives a valid per-class score for ranking without the
+expensive Platt-scaling calibration that probability=True triggers, which
+matters at 500 classes. Everything else is unchanged, so run_experiments.py,
+train_classifier.py, and main.py all keep working without modification.
+"""
 from pathlib import Path
 
 import joblib
@@ -70,6 +80,32 @@ class TraditionalClassifier:
             )
 
         return self.model.predict(features)
+
+    def decision_scores(self, features: np.ndarray) -> np.ndarray:
+        """
+        Per-class scores used for top-k accuracy, shape (n_samples, n_classes)
+        with columns matching `self.classes_`.
+
+        Prefers predict_proba (Random Forest has this by default). Falls back
+        to decision_function for SVM, since probability=False here -- the
+        ranking from decision_function is exactly what top_k_accuracy_score
+        needs, without paying for probability calibration.
+        """
+        if hasattr(self.model, "predict_proba"):
+            return self.model.predict_proba(features)
+
+        if hasattr(self.model, "decision_function"):
+            return self.model.decision_function(features)
+
+        raise AttributeError(
+            f"{self.model_type} classifier supports neither "
+            "predict_proba nor decision_function."
+        )
+
+    @property
+    def classes_(self) -> np.ndarray:
+        """Class ids in the same order as decision_scores()'s columns."""
+        return self.model.classes_
 
     def evaluate(
         self,
