@@ -3,6 +3,7 @@ import time
 
 import joblib
 import numpy as np
+import pandas as pd
 
 from bovw import BagOfVisualWords
 from classifier import TraditionalClassifier
@@ -23,7 +24,7 @@ def run_experiment(
 
     vocabulary_descriptors = sample_vocabulary_descriptors(
         train_descriptors,
-        max_descriptors=50_000,
+        max_descriptors=100_000,
     )
 
     bovw = BagOfVisualWords(
@@ -69,6 +70,7 @@ def run_experiment(
                 "vocabulary_size": vocabulary_size,
                 "classifier": model_name,
                 "accuracy": results["accuracy"],
+                "top5_accuracy": results["top5_accuracy"],
                 "macro_f1": results["f1_macro"],
                 "feature_time": feature_time,
                 "training_time": training_time,
@@ -86,7 +88,7 @@ def run_experiment(
 def main():
 
     descriptor_file = Path(
-        "results/sift_descriptors_50_classes.joblib"
+        "results/sift_descriptors_500_classes.joblib"
     )
 
     descriptor_data = joblib.load(
@@ -123,15 +125,32 @@ def main():
             f"{result['classifier']:15}"
             f" | words={result['vocabulary_size']:3}"
             f" | acc={result['accuracy']:.4f}"
+            f" | top5={result['top5_accuracy']:.4f}"
             f" | f1={result['macro_f1']:.4f}"
             f" | feature={result['feature_time']:.2f}s"
             f" | train={result['training_time']:.2f}s"
         )
 
+    results_dir = Path("results")
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    joblib_path = results_dir / "experiment_results_500_classes.joblib"
+
     joblib.dump(
         all_results,
-        "results/experiment_results.joblib",
+        joblib_path,
     )
+
+    csv_path = results_dir / "experiment_results_500_classes.csv"
+
+    results_df = pd.DataFrame(all_results)
+    results_df.to_csv(
+        csv_path,
+        index=False,
+    )
+
+    print(f"\nJoblib results saved to: {joblib_path}")
+    print(f"CSV results saved to: {csv_path}")
 
 
 if __name__ == "__main__":

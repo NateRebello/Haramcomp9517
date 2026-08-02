@@ -44,6 +44,7 @@ class TraditionalClassifier:
                             C=10.0,
                             gamma="scale",
                             class_weight="balanced",
+                            decision_function_shape="ovr",
                             random_state=self.random_state,
                         ),
                     ),
