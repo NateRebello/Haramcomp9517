@@ -8,7 +8,7 @@ from evaluation import Evaluator
 
 def main() -> None:
     feature_path = Path(
-        "results/bovw_features_50_classes.npz"
+        "results/bovw_features_500_classes.npz"
     )
 
     if not feature_path.exists():
@@ -61,7 +61,7 @@ def main() -> None:
     )
 
     svm_path = Path(
-        "models/svm_bovw_200.joblib"
+        "models/svm_bovw_200_500_classes.joblib"
     )
 
     svm.save(svm_path)
@@ -70,7 +70,7 @@ def main() -> None:
 
     Evaluator.save_results(
         svm_val_results,
-        "results/svm_validation_results.joblib",
+        "results/svm_validation_results_500_classes.joblib",
     )
 
     # ---------------------------------------------------------
@@ -101,7 +101,7 @@ def main() -> None:
     )
 
     rf_path = Path(
-        "models/random_forest_bovw_200.joblib"
+        "models/random_forest_bovw_200_500_classes.joblib"
     )
 
     random_forest.save(rf_path)
@@ -110,7 +110,7 @@ def main() -> None:
 
     Evaluator.save_results(
         rf_val_results,
-        "results/random_forest_validation_results.joblib",
+        "results/random_forest_validation_results_500_classes.joblib",
     )
 
     # ---------------------------------------------------------
@@ -165,11 +165,19 @@ def main() -> None:
 
     Evaluator.save_results(
         test_results,
-        "results/best_model_test_results.joblib",
+        "results/best_model_test_results_500_classes.joblib",
     )
 
     print(
         "\nEvaluation results saved in the results folder."
+    )
+    print(
+        f"SVM top-5 accuracy: "
+        f"{svm_val_results['top5_accuracy']:.4f}"
+    )
+    print(
+        f"Random Forest top-5 accuracy: "
+        f"{rf_val_results['top5_accuracy']:.4f}"
     )
 
 
