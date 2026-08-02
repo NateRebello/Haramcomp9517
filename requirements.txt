@@ -1,5 +1,6 @@
 opencv-contrib-python
 scikit-learn
+scikit-image
 matplotlib
 pandas
 tqdm
