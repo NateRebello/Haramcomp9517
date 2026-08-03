@@ -22,11 +22,15 @@ SEED = 42
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-# Pipeline root: .../Group_project/dl_pipeline
+# Pipeline root: .../Haramcomp9517/dl_pipeline
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# Native-resolution iNat subset (not the resized copy)
-DATA_ROOT = Path(r"C:\Users\Abdoali\Comp9517\Group_project\inat_subset\subset")
+# Native-resolution iNat subset (train/val/test, 500 classes).
+# Default: repo-root/subset (sibling of dl_pipeline/). Override for Colab/Drive:
+#   export INAT_DATA_ROOT=/content/drive/MyDrive/.../subset
+#   or in a notebook: os.environ["INAT_DATA_ROOT"] = "..." before importing config.
+_DEFAULT_DATA_ROOT = PROJECT_ROOT.parent / "subset"
+DATA_ROOT = Path(os.environ.get("INAT_DATA_ROOT", str(_DEFAULT_DATA_ROOT))).expanduser().resolve()
 
 CHECKPOINTS_DIR = PROJECT_ROOT / "checkpoints"
 RESULTS_DIR = PROJECT_ROOT / "results"
