@@ -9,12 +9,9 @@ from bovw import BagOfVisualWords
 from classifier import TraditionalClassifier
 from dataset import load_dataset
 from evaluation import Evaluator
-from main import select_balanced_subset
 
 
 RANDOM_STATE = 42
-NUM_CLASSES = 50
-TEST_PER_CLASS = 2
 MAX_SIFT_FEATURES = 500
 
 
@@ -44,6 +41,11 @@ def apply_gaussian_blur(
     kernel_size: int,
 ) -> np.ndarray:
     """Apply Gaussian blur."""
+    if kernel_size <= 0 or kernel_size % 2 == 0:
+        raise ValueError(
+            "Gaussian blur kernel size must be a positive odd integer."
+        )
+
     return cv2.GaussianBlur(
         image,
         (kernel_size, kernel_size),
@@ -56,6 +58,11 @@ def adjust_brightness(
     factor: float,
 ) -> np.ndarray:
     """Adjust image brightness using a multiplication factor."""
+    if factor < 0:
+        raise ValueError(
+            "Brightness factor must be non-negative."
+        )
+
     adjusted = image.astype(np.float32) * factor
 
     return np.clip(
@@ -70,6 +77,11 @@ def apply_jpeg_compression(
     quality: int,
 ) -> np.ndarray:
     """Apply JPEG compression and decode the image again."""
+    if quality < 1 or quality > 100:
+        raise ValueError(
+            "JPEG quality must be between 1 and 100."
+        )
+
     success, encoded_image = cv2.imencode(
         ".jpg",
         image,
@@ -188,20 +200,31 @@ def generate_corrupted_descriptors(
 
     descriptors_per_image: list[np.ndarray | None] = []
 
-    rng = np.random.default_rng(random_state)
+    rng = np.random.default_rng(
+        random_state
+    )
 
-    for index, image_path in enumerate(image_paths):
-        image = cv2.imread(str(image_path))
+    total_images = len(image_paths)
+
+    for index, image_path in enumerate(
+        image_paths,
+        start=1,
+    ):
+        image = cv2.imread(
+            str(image_path)
+        )
 
         if image is None:
             raise FileNotFoundError(
                 f"Unable to read image: {image_path}"
             )
 
-        # A deterministic random generator for each image ensures
-        # reproducible Gaussian noise.
+        # Separate deterministic random stream per image.
         image_rng = np.random.default_rng(
-            rng.integers(0, 2**32 - 1)
+            rng.integers(
+                0,
+                2**32 - 1,
+            )
         )
 
         corrupted_image = apply_corruption(
@@ -216,12 +239,13 @@ def generate_corrupted_descriptors(
             sift,
         )
 
-        descriptors_per_image.append(descriptors)
+        descriptors_per_image.append(
+            descriptors
+        )
 
-        if (index + 1) % 20 == 0:
+        if index % 100 == 0 or index == total_images:
             print(
-                f"Processed {index + 1}/"
-                f"{len(image_paths)} images"
+                f"Processed {index}/{total_images} images"
             )
 
     return descriptors_per_image
@@ -236,7 +260,7 @@ def evaluate_condition(
     corruption: str,
     severity_name: str,
     severity_value: float | int | None,
-) -> list[dict]:
+) -> list[dict[str, object]]:
     """Evaluate both trained models under one degradation condition."""
     print("\n" + "=" * 60)
     print(
@@ -258,9 +282,11 @@ def evaluate_condition(
         test_descriptors
     )
 
-    processing_time = time.perf_counter() - start_time
+    processing_time = (
+        time.perf_counter() - start_time
+    )
 
-    condition_results = []
+    condition_results: list[dict[str, object]] = []
 
     models = {
         "svm": svm,
@@ -289,12 +315,9 @@ def evaluate_condition(
                 "severity_value": severity_value,
                 "model": model_name,
                 "accuracy": results["accuracy"],
-                "precision_macro": results[
-                    "precision_macro"
-                ],
-                "recall_macro": results[
-                    "recall_macro"
-                ],
+                "top5_accuracy": results["top5_accuracy"],
+                "precision_macro": results["precision_macro"],
+                "recall_macro": results["recall_macro"],
                 "macro_f1": results["f1_macro"],
                 "processing_time_seconds": processing_time,
             }
@@ -304,7 +327,7 @@ def evaluate_condition(
 
 
 def save_results(
-    results: list[dict],
+    results: list[dict[str, object]],
     output_path: Path,
 ) -> None:
     """Save robustness results as CSV."""
@@ -319,6 +342,7 @@ def save_results(
         "severity_value",
         "model",
         "accuracy",
+        "top5_accuracy",
         "precision_macro",
         "recall_macro",
         "macro_f1",
@@ -340,18 +364,20 @@ def save_results(
 
 
 def main() -> None:
-    dataset_root = Path("data/subset")
+    dataset_root = Path(
+        "data/subset"
+    )
 
     bovw_path = Path(
-        "models/bovw_200.joblib"
+        "models/bovw_200_500_classes.joblib"
     )
 
     svm_path = Path(
-        "models/svm_bovw_200.joblib"
+        "models/svm_bovw_200_500_classes.joblib"
     )
 
     random_forest_path = Path(
-        "models/random_forest_bovw_200.joblib"
+        "models/random_forest_bovw_200_500_classes.joblib"
     )
 
     required_files = [
@@ -368,38 +394,25 @@ def main() -> None:
 
     print("Loading dataset...")
 
-    dataset = load_dataset(dataset_root)
-
-    all_train_labels = np.asarray(
-        dataset["train_labels"]
+    dataset = load_dataset(
+        dataset_root
     )
 
-    available_classes = np.unique(
-        all_train_labels
-    )
+    test_paths = dataset["test_paths"]
 
-    rng = np.random.default_rng(
-        RANDOM_STATE
-    )
-
-    selected_classes = np.sort(
-        rng.choice(
-            available_classes,
-            size=NUM_CLASSES,
-            replace=False,
-        )
-    )
-
-    test_paths, test_labels = select_balanced_subset(
-        paths=dataset["test_paths"],
-        labels=dataset["test_labels"],
-        selected_classes=selected_classes,
-        samples_per_class=TEST_PER_CLASS,
-        random_state=RANDOM_STATE,
+    test_labels = np.asarray(
+        dataset["test_labels"],
+        dtype=np.int32,
     )
 
     print(
-        f"Testing images used: {len(test_paths)}"
+        f"Classes used: "
+        f"{len(dataset['class_to_index'])}"
+    )
+
+    print(
+        f"Testing images used: "
+        f"{len(test_paths)}"
     )
 
     print("\nLoading trained models...")
@@ -422,7 +435,6 @@ def main() -> None:
             "severity": "none",
             "value": None,
         },
-
         {
             "corruption": "gaussian_noise",
             "severity": "low",
@@ -438,7 +450,6 @@ def main() -> None:
             "severity": "high",
             "value": 30,
         },
-
         {
             "corruption": "gaussian_blur",
             "severity": "low",
@@ -454,7 +465,6 @@ def main() -> None:
             "severity": "high",
             "value": 11,
         },
-
         {
             "corruption": "brightness",
             "severity": "low",
@@ -470,7 +480,6 @@ def main() -> None:
             "severity": "high",
             "value": 0.25,
         },
-
         {
             "corruption": "jpeg",
             "severity": "low",
@@ -488,7 +497,7 @@ def main() -> None:
         },
     ]
 
-    all_results: list[dict] = []
+    all_results: list[dict[str, object]] = []
 
     for condition in conditions:
         condition_results = evaluate_condition(
@@ -507,7 +516,7 @@ def main() -> None:
         )
 
     output_path = Path(
-        "results/robustness_results.csv"
+        "results/robustness_results_500_classes.csv"
     )
 
     save_results(
@@ -520,11 +529,20 @@ def main() -> None:
     print("=" * 60)
 
     for result in all_results:
+        top5 = result["top5_accuracy"]
+
+        top5_text = (
+            f"{top5:.4f}"
+            if top5 is not None
+            else "N/A"
+        )
+
         print(
             f"{result['model']:14}"
             f" | {result['corruption']:16}"
             f" | {result['severity']:6}"
-            f" | acc={result['accuracy']:.4f}"
+            f" | top1={result['accuracy']:.4f}"
+            f" | top5={top5_text}"
             f" | f1={result['macro_f1']:.4f}"
         )
 
