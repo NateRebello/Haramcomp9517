@@ -2,6 +2,8 @@
 
 Shared ResNet-18 utilities + notebooks. Abdoali owns from-scratch training; Nate owns ImageNet-pretrained fine-tuning + Grad-CAM.
 
+**GPU hand-off:** if Nate cannot use Colab, Abdoali runs pretrained + Grad-CAM on the RTX 2050 — see **[ABDOALI_RUNBOOK.md](ABDOALI_RUNBOOK.md)**.
+
 ## Data
 
 Expected layout (500 classes, 40/10/10 images):
