@@ -99,6 +99,59 @@ def _assert_same_classes(
         )
 
 
+_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"}
+
+
+def verify_subset_images(data_root: Path, *, sample_class: Optional[str] = None) -> Dict:
+    """
+    Check that class folders contain real image files (not empty Drive stubs).
+
+    ImageFolder only requires directories to exist; empty class folders raise
+    FileNotFoundError: Found no valid file for the classes ...
+    """
+    data_root = Path(data_root)
+    report: Dict = {"data_root": str(data_root), "splits": {}}
+    for split in ("train", "val", "test"):
+        split_dir = data_root / split
+        if not split_dir.is_dir():
+            raise FileNotFoundError(f"Missing split directory: {split_dir}")
+        class_dirs = sorted([d for d in split_dir.iterdir() if d.is_dir()])
+        if not class_dirs:
+            raise FileNotFoundError(f"No class folders under {split_dir}")
+
+        probe = split_dir / sample_class if sample_class else class_dirs[0]
+        if not probe.is_dir():
+            probe = class_dirs[0]
+
+        files = [p for p in probe.iterdir() if p.is_file()]
+        images = [p for p in files if p.suffix.lower() in _IMAGE_EXTS]
+        n_images_split = 0
+        # Cheap sample: count images in first 3 class folders
+        for d in class_dirs[:3]:
+            n_images_split += sum(
+                1 for p in d.iterdir() if p.is_file() and p.suffix.lower() in _IMAGE_EXTS
+            )
+
+        report["splits"][split] = {
+            "n_classes": len(class_dirs),
+            "probe_class": probe.name,
+            "probe_files": len(files),
+            "probe_images": len(images),
+            "images_in_first_3_classes": n_images_split,
+            "probe_examples": [p.name for p in images[:3]],
+        }
+        if len(images) == 0:
+            raise FileNotFoundError(
+                f"{probe} has class folder(s) but no image files "
+                f"({_IMAGE_EXTS}). Your Drive copy is incomplete or still "
+                f"syncing. Upload the full local subset "
+                f"(train/<id>/*.jpg) to Drive, or ask your teammate for the "
+                f"complete share — not just empty category folders.\n"
+                f"Checked: {probe}"
+            )
+    return report
+
+
 def build_datasets(
     train_dir: Path = TRAIN_DIR,
     val_dir: Path = VAL_DIR,
@@ -108,6 +161,9 @@ def build_datasets(
     augment_train: bool = True,
 ) -> Tuple[datasets.ImageFolder, datasets.ImageFolder, datasets.ImageFolder]:
     """Create train / val / test ImageFolder datasets with aligned labels."""
+    # Fail early with a clear message if Drive folders are empty stubs.
+    verify_subset_images(Path(train_dir).parent)
+
     train_ds = datasets.ImageFolder(
         root=str(train_dir),
         transform=get_transforms("train", img_size, augment_train=augment_train),
