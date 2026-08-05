@@ -1,0 +1,112 @@
+{
+  "name": "resnet18_pretrained",
+  "checkpoint": "C:\\Users\\Abdoali\\Comp9517\\Group_project\\Haramcomp9517\\dl_pipeline\\checkpoints\\resnet18_pretrained\\best.pt",
+  "meta": {
+    "epoch": 9,
+    "best_val_acc": 0.6188099041533547,
+    "config": {
+      "run_name": "resnet18_pretrained",
+      "architecture": "resnet18",
+      "pretrained": true,
+      "num_classes": 500,
+      "img_size": 224,
+      "batch_size": 16,
+      "lr": 0.0001,
+      "weight_decay": 0.0001,
+      "num_epochs": 15,
+      "optimizer": "AdamW",
+      "use_amp": true,
+      "seed": 42
+    },
+    "pretrained_flag": true
+  },
+  "metrics": {
+    "top1_acc": 0.613,
+    "overall_acc": 0.613,
+    "macro_precision": 0.6586409091384323,
+    "macro_recall": 0.613,
+    "macro_f1": 0.6122143399907419,
+    "top5_acc": 0.82,
+    "inference_logits_seconds": 5.908645700052148,
+    "inference_wall_seconds": 37.061681399994995,
+    "inference_img_per_sec": 846.2176027843185,
+    "n_test": 5000
+  },
+  "most_confused_pairs": [
+    {
+      "true": "2277",
+      "pred": "2276",
+      "count": 7
+    },
+    {
+      "true": "1799",
+      "pred": "1796",
+      "count": 7
+    },
+    {
+      "true": "3108",
+      "pred": "3100",
+      "count": 5
+    },
+    {
+      "true": "2046",
+      "pred": "2059",
+      "count": 5
+    },
+    {
+      "true": "7995",
+      "pred": "7033",
+      "count": 4
+    },
+    {
+      "true": "5149",
+      "pred": "5140",
+      "count": 4
+    },
+    {
+      "true": "3469",
+      "pred": "3462",
+      "count": 4
+    },
+    {
+      "true": "26",
+      "pred": "53",
+      "count": 4
+    },
+    {
+      "true": "2005",
+      "pred": "2006",
+      "count": 4
+    },
+    {
+      "true": "1828",
+      "pred": "1907",
+      "count": 4
+    },
+    {
+      "true": "1796",
+      "pred": "1799",
+      "count": 4
+    },
+    {
+      "true": "1755",
+      "pred": "1628",
+      "count": 4
+    },
+    {
+      "true": "1569",
+      "pred": "1628",
+      "count": 4
+    },
+    {
+      "true": "9173",
+      "pred": "7901",
+      "count": 3
+    },
+    {
+      "true": "8207",
+      "pred": "8189",
+      "count": 3
+    }
+  ]
+}
