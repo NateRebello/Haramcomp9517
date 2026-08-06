@@ -11,6 +11,7 @@ and evaluation.py's Evaluator so results are directly comparable to the tough
 Usage:
     python main_easy.py
 """
+import time
 from pathlib import Path
 
 from classifier import TraditionalClassifier
@@ -45,9 +46,20 @@ def main() -> None:
     for model_type in ("svm", "random_forest"):
         print(f"\nTraining {model_type}...")
         classifier = TraditionalClassifier(model_type=model_type, random_state=42)
-        classifier.fit(train_features, train_labels)
 
+        fit_start = time.perf_counter()
+        classifier.fit(train_features, train_labels)
+        train_time_s = time.perf_counter() - fit_start
+        print(f"Trained in {train_time_s:.2f}s")
+
+        eval_start = time.perf_counter()
         results = Evaluator.evaluate(classifier, test_features, test_labels)
+        test_time_s = time.perf_counter() - eval_start
+        print(f"Evaluated (predict + metrics) in {test_time_s:.2f}s")
+
+        results["train_time_s"] = train_time_s
+        results["test_time_s"] = test_time_s
+
         Evaluator.print_summary(
             f"Easy traditional -- {model_type} (color histogram + LBP)", results
         )
