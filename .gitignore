@@ -1,5 +1,6 @@
 # Dataset
 data/
+subset/
 
 # Trained models
 models/
@@ -27,3 +28,9 @@ venv/
 *.h5
 *.npy
 *.npz
+# Deep learning pipeline locals
+dl_pipeline/.venv/
+dl_pipeline/checkpoints/*
+!dl_pipeline/checkpoints/.gitkeep
+dl_pipeline/results/*
+!dl_pipeline/results/.gitkeep

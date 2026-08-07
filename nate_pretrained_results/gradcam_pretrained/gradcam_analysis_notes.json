@@ -1,0 +1,62 @@
+{
+  "checkpoint": "C:\\Users\\Abdoali\\Comp9517\\Group_project\\Haramcomp9517\\dl_pipeline\\checkpoints\\resnet18_pretrained\\best.pt",
+  "n_correct": 3065,
+  "n_incorrect": 1935,
+  "top_confused_pairs": [
+    {
+      "true": "2277",
+      "pred": "2276",
+      "count": 7
+    },
+    {
+      "true": "1799",
+      "pred": "1796",
+      "count": 7
+    },
+    {
+      "true": "3108",
+      "pred": "3100",
+      "count": 5
+    },
+    {
+      "true": "2046",
+      "pred": "2059",
+      "count": 5
+    },
+    {
+      "true": "7995",
+      "pred": "7033",
+      "count": 4
+    },
+    {
+      "true": "5149",
+      "pred": "5140",
+      "count": 4
+    },
+    {
+      "true": "3469",
+      "pred": "3462",
+      "count": 4
+    },
+    {
+      "true": "26",
+      "pred": "53",
+      "count": 4
+    },
+    {
+      "true": "2005",
+      "pred": "2006",
+      "count": 4
+    },
+    {
+      "true": "1828",
+      "pred": "1907",
+      "count": 4
+    }
+  ],
+  "findings": [
+    "TODO: On correct examples, Grad-CAM typically focused on \u2026 (organism body / head / flower).",
+    "TODO: On incorrect examples, activation often spilled onto \u2026 (background / similar co-occurring object).",
+    "TODO: For the top confused pair, both species share \u2026 which may explain the swap."
+  ]
+}
